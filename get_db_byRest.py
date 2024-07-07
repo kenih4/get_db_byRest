@@ -27,7 +27,6 @@ print(mpl.__version__)
 class ShiftLog:
 
     def __init__(self, x_or_s):
-        # REST-API
 #        print("x_or_s = ",x_or_s)
         rest_api_host = 'srweb-dmz-03' if x_or_s =='xfel' else 'xfweb-dmz-03'
         self.db = pymdaq_web.db(rest_api_host, port=8888, debug=0)
@@ -36,13 +35,13 @@ class ShiftLog:
         self.db.close()
         
     def get_data(self, signame, from_dt, to_dt):
-        db = self.db
-        
+        db = self.db        
         res = db.get_data(signame,from_dt,to_dt)
         
         if db.status()!=pymdaq_web.DB_OK:
             print('Error: %d: %s' % (db.status(),db.err_msg()))
-            raise SystemExit()
+            return
+
         data = res
         nd = db.conv_pointdata_to_ndarray(data, split=False, use_mdates=False)  #時系列ログデータから取得した点データをNumPyのndarrayに変換 http://srweb-dmz-03.spring8.or.jp:8888/static/docs/mdaq_web_api/mdaq.html
         df = pd.DataFrame(nd, columns=['date', 'value'])
@@ -82,12 +81,13 @@ if __name__ == '__main__':
 
     begin_dt = '2024/06/27 02:51:00'
     end_dt = '2024/06/27 02:59:00'
+
+#    begin_dt = '2024/07/4 17:35:00'
+#    end_dt = '2024/07/4 17:45:00'
     
     log = ShiftLog(str(df_set.loc['x_or_s']).replace("1","").strip().splitlines()[0])
-    #sys.exit()
     print("figsize = ",plt.rcParams["figure.figsize"])  # default [6.4, 4.8]
     print("dpi = ",plt.rcParams["figure.dpi"])      # defalut 100.0      #ディスプレイ上に描画される図のサイズ デフォルト値は、ピクセル単位で640x480
-
 
 #    print("len(df_sig) = ",len(df_sig))
     ax = [] * len(df_sig)
@@ -95,15 +95,16 @@ if __name__ == '__main__':
     fig.patch.set_facecolor(str(df_set.loc['bcolor']).replace("1","").strip().splitlines()[0])
     fig.canvas.manager.set_window_title(str(df_set.loc['title']).replace("1","").strip())    
     
-
- 
     for index, row in df_sig.iterrows():
         print (index,row["sname"], row["width"])
 #        if index > 1:
 #            continue
         df = pd.DataFrame()
-        df = log.record(begin_dt, end_dt, row["sname"])        
-#        print(df)
+        df = log.record(begin_dt, end_dt, row["sname"])   
+        if df is None:
+            print("df is None ~~~~~~~~~~~~~~~~~")
+            continue
+
 #        print("ANS:",df.iloc[-1]['date'], " VAL:", df.iloc[-1]['value'])
 #        print("ANS:",df.iloc[-2]['date'], " VAL:", df.iloc[-2]['value'])
 #        print("MEAN:",df.value.mean())
@@ -126,3 +127,4 @@ if __name__ == '__main__':
     plt.savefig(str(df_set.loc['title']).replace("1","").strip().splitlines()[0]+'.png', dpi=300) # dip デフォルトは100
 
 #    sys.exit()
+#    raise SystemExit()
