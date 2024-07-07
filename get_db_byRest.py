@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-python get_db_byRest.py config_setting_LLRF.xlsx config_sig_LLRF_Pickup.xlsx
+python get_db_byRest.py config_setting_LLRF.xlsx config_sig_LLRF_Pickup_INJECTOR.xlsx
+python get_db_byRest.py config_setting_LLRF.xlsx config_sig_LLRF_Pickup_MAINLINAC.xlsx
 python get_db_byRest.py config_setting_LLRF_SCSS.xlsx config_sig_LLRF_Pickup_SCSS.xlsx 
 
 デバッグ用
@@ -105,9 +106,15 @@ if __name__ == '__main__':
 #        print(df)
 #        print("ANS:",df.iloc[-1]['date'], " VAL:", df.iloc[-1]['value'])
 #        print("ANS:",df.iloc[-2]['date'], " VAL:", df.iloc[-2]['value'])
-        latest = (df.iloc[-1]['value']+df.iloc[-2]['value'])/2      # df.iloc[-1]['value']
+#        print("MEAN:",df.value.mean())
+#        print("STD:",df.value.std())
+
+        latest = df.value.mean()    #(df.iloc[-1]['value']+df.iloc[-2]['value'])/2      # df.iloc[-1]['value']
+        width  = df.value.std() * 3
         ax[index].plot(df['date'], df['value'], markersize=1, label=row["sname"], color=row['color'],linewidth=row["linewidth"])   #, clip_on=False)
-        ax[index].set_ylim(latest - row["width"], latest + row["width"])
+
+#        ax[index].set_ylim(latest - row["width"], latest + row["width"])   #固定幅
+        ax[index].set_ylim(latest - width, latest + width)
 
         ax[index].patch.set_facecolor('gray')
         ax[index].grid(axis="x", linestyle=':', color='snow')
