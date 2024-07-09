@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+#SACLA
 python get_db_byRest.py config_setting_LLRF.xlsx config_sig_LLRF_Pickup_INJECTOR.xlsx
 python get_db_byRest.py config_setting_LLRF.xlsx config_sig_LLRF_Pickup_MAINLINAC.xlsx
+python get_db_byRest.py config_setting_MON.xlsx config_sig_MON.xlsx
+
+#SCSS+
 python get_db_byRest.py config_setting_LLRF_SCSS.xlsx config_sig_LLRF_Pickup_SCSS.xlsx
 
 デバッグ用
@@ -60,28 +64,7 @@ class ShiftLog:
     
     
     
-    
-"""
-#箱ひげ図を表示するための関数を定義
-def get_box(input_df):
-  print("箱ひげ図を表示するための関数を定義")
-  #入力のコピーを作成
-  output_df=input_df.copy()
-  #表示する図のサイズを指定
-  fig = plt.figure(figsize=(20,20))
-  #箱ひげ図で表示するデータの列を指定
-  num_list=["value"]
-  #指定した列分繰り返す
-  for i in range(len(num_list)):
-    #1出力に複数の図を表示できるように設定
-    plt.subplot(len(num_list), 4, i+1)
-    #箱ひげ図の表示
-    output_df[num_list[i]].plot(kind="box")
-  return output_df
-"""
-
 if __name__ == '__main__':
-
 
     print("arg len:",len(sys.argv))
     print("argv:",sys.argv)
@@ -100,12 +83,13 @@ if __name__ == '__main__':
 
 
 
-
+    #CB17-4 Vk変動
     begin_dt = '2024/06/27 02:51:00'
-    end_dt = '2024/06/27 02:52:00'
+    end_dt = '2024/06/27 02:54:00'
 
-    begin_dt = '2024/07/4 17:35:00'
-    end_dt = '2024/07/4 17:45:00'
+    #SCSS+ CB1-3 INV変動
+#    begin_dt = '2024/07/4 17:35:00'
+#    end_dt = '2024/07/4 17:45:00'
     
     log = ShiftLog(str(df_set.loc['x_or_s']).replace("1","").strip().splitlines()[0])
     print("figsize = ",plt.rcParams["figure.figsize"])  # default [6.4, 4.8]
@@ -113,15 +97,10 @@ if __name__ == '__main__':
 
 #    print("len(df_sig) = ",len(df_sig))
     ax = [] * len(df_sig)
-#    fig, (ax) = plt.subplots(nrows=len(df_sig), figsize=(5, 1 * 100))    #figsize で指定した(横幅, 縦幅) と dpi を掛け合わせると、生成される図のピクセル数が (横幅*dpi) × (縦幅*dpi) と求まる
-#    fig, (ax) = plt.subplots(nrows=len(df_sig), figsize=(5, 1 * len(df_sig)))    #figsize で指定した(横幅, 縦幅) と dpi を掛け合わせると、生成される図のピクセル数が (横幅*dpi) × (縦幅*dpi) と求まる
-    fig, (ax) = plt.subplots(nrows=len(df_sig), ncols=2, figsize=(5, 1 * len(df_sig)),   gridspec_kw=dict(width_ratios=[7,1], wspace=0.01, hspace=0.01))    #figsize で指定した(横幅, 縦幅) と dpi を掛け合わせると、生成される図のピクセル数が (横幅*dpi) × (縦幅*dpi) と求まる
+    fig, (ax) = plt.subplots(nrows=len(df_sig), ncols=2, figsize=(5, 1 * len(df_sig)),   gridspec_kw=dict(width_ratios=[8,1], wspace=0.01, hspace=0.01))    #figsize で指定した(横幅, 縦幅) と dpi を掛け合わせると、生成される図のピクセル数が (横幅*dpi) × (縦幅*dpi) と求まる
     fig.patch.set_facecolor(str(df_set.loc['bcolor']).replace("1","").strip().splitlines()[0])
     fig.canvas.manager.set_window_title(str(df_set.loc['title']).replace("1","").strip())    
 
-#    bx = [] * len(df_sig)
-#    fig_b, (bx) = plt.subplots(nrows=len(df_sig), figsize=(1, 1 * len(df_sig)))    #figsize で指定した(横幅, 縦幅) と dpi を掛け合わせると、生成される図のピクセル数が (横幅*dpi) × (縦幅*dpi) と求まる
-    
     for index, row in df_sig.iterrows():
         print (index,row["sname"], row["width"])
 #        if index > 1:
@@ -132,21 +111,23 @@ if __name__ == '__main__':
             print("df is None ~~~~~~~~~~~~~~~~~")
             continue
 
-        print("ANS:",df.iloc[-1]['date'], " VAL:", df.iloc[-1]['value'])
+        print(index,row["sname"], " ANS:",df.iloc[-1]['date'], "    VAL:", df.iloc[-1]['value'])
 #        print("ANS:",df.iloc[-2]['date'], " VAL:", df.iloc[-2]['value'])
 #        print("MEAN:",df.value.mean())
 #        print("STD:",df.value.std())
 
-        latest = df.value.mean()    #(df.iloc[-1]['value']+df.iloc[-2]['value'])/2      # df.iloc[-1]['value']
-        width  = df.value.std() * 3
+        ave = df.value.mean()    #(df.iloc[-1]['value']+df.iloc[-2]['value'])/2      # df.iloc[-1]['value']
+        width  = df.value.std() * 5
         ax[index,0].plot(df['date'], df['value'], markersize=1, label=row["sname"], color=row['color'],linewidth=row["linewidth"])   #, clip_on=False)
-        ax[index,0].set_ylim(latest - row["width"], latest + row["width"])   #固定幅
-        ax[index,0].set_ylim(latest - width, latest + width)
+        #ax[index,0].set_ylim(ave - row["width"], ave + row["width"])   #固定幅
+        ax[index,0].set_ylim(ave - width, ave + width)
         ax[index,0].patch.set_facecolor('gray')
         ax[index,0].grid(axis="x", linestyle=':', color='snow')
-        ax[index,0].legend(loc='upper left', borderaxespad=0, fontsize="3") #, fontsize="100"
+        ax[index,0].legend(loc='upper left', borderaxespad=0, fontsize="3") 
 
-        ax[index,1].boxplot(df['value'])
+        ax[index,1].boxplot(df['value'], widths=0.1, showmeans=True, meanprops={"marker":"x", "markeredgecolor":"blue", "ms":5}, flierprops={"marker":"o", "markerfacecolor":"blue", "markeredgecolor":"red", "ms":0.5}) #  https://pygraph.helve-blog.com/matplotlib/boxplot  箱ひげの詳細
+        ax[index,1].set_ylim(ave - width, ave + width)
+
 
 
 #    plt.show()
